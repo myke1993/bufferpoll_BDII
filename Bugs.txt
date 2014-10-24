@@ -1,17 +1,30 @@
-Universidade Federal da Fronteira Sul – UFFS 
+﻿Universidade Federal da Fronteira Sul – UFFS 
 Curso: Ciência da Computação
 Componente Curricular: Banco de Dados II
 Professor: Dr. Denio Duarte
-Alunos: Myke Wyllian Dal'Agnol
-		Sidinei Perondi
+Alunos: Myke Wyllian Dal'Agnol e Sidinei Perondi
 
 Introdução
-	Trabalho desenvolvido para o componente curricular de Banco de Dados II, sua finalidade é corrigir bugs do trabalho nos apresentado e implementar uma main que execute a biblioteca buffend.h e faça algumas inclusões e consultas complementando o que ja havia sido feito anteriormente.
+	Trabalho desenvolvido para o componente curricular de Banco de Dados II, sua finalidade
+ 	é encontrar bugs do trabalho nos apresentado e implementar uma main que execute a biblioteca buffend.h e faça 
+	algumas inclusões e consultas complementando o que ja havia sido feito anteriormente.
 	
 Programa Flexível:
-	Elaboramos um programa em C que utiliza a biblioteca buffend.h e a tabela de erros erros.h, que produz tabelas segundo as necessidade do usuário.
+	Elaborar um programa em C que utiliza a biblioteca buffend.h e a tabela de erros erros.h,
+	 que produz tabelas segundo as necessidade do usuário.
 
-Bugs:
+Bugs: 
+
+--buffend.h . Nos define SIZE e PAGES
+	Nas linhas  6 e 7
+ 	Quando é mudada a arquitetura de 32 para 64 bits, em alguns casos é perdido espaço para esses valores
+	em bytes, temos que dobrar esses valores. Aumentado os valores de SIZE e PAGES
+	 (#define SIZE 1024 e #define PAGES 2048)
+	assim se aceita o dobro de valores, mas continua limitado.
+
+
+--NossoBuffer.c ->  
+	Para iniciar o executavel tem que excluir os arquivos .dat e fs_*
 
 
 
