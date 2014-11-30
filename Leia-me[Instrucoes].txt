@@ -3,6 +3,7 @@ Curso: Ciência da Computação
 Componente Curricular: Banco de Dados II
 Professor: Dr. Denio Duarte
 Alunos: Gabrielle Almeida de Souza e Lais Borin
+Aprimoração: Myke Wyllian Dal'Agnol e Sidnei Perondi (a partir da linha 97)
 
 Introdução
 	Trabalho desenvolvido para o componente curricular de Banco de Dados II, sua finalidade é implementar a criação de tabelas, bem como a inclusão de tuplas em disco e remoção de tuplas do buffer complementando o que ja havia sido feito anteriormente.
@@ -93,6 +94,23 @@ Da compilação:
 	$ ./prog <Nome da Tabela>
 
 
+Inclusão da Chave Primária e Chave Estrangeira por Myke Wyllian Dal'Agnol e Sidnei Perondi
 
+	Conteúdo Produzido:
+		- Foi modificada e utilizada uma estrutura de dados anteriormente criada de árvore binária
+		- Foi modificado as estruturas fs_objects e table para suportar as chaves
+		- Foi modificado as funções que escrevem as estruturas no sistema de arquivos para escrever as chaves
+		- Foi modificado as funções que leem os dicionarios para ler também as chaves
+		- Foi acrescentado as funções adicionaChavePrimaria e adicionaChaveEstrangeira a biblioteca buffend.h
+		- Foi modificado a função que finaliza a inserção, para não inserir caso a regra da chave primária não seja respeitada
+		- Foi iniciado as funções que fazem comparação com a chave estrageira
+	
+	Dificuldades:
+		- Mesma dificuldade encontrada em trabalhos anteriosres, entender os códigos já prontos.
+		
+	Observações:
+		- Chave primária tem que ser a primeira coluna a ser inserida na tupla, senão ocorrerá um erro no código.
+		
+	
 
 

@@ -15,6 +15,8 @@ struct fs_objects { // Estrutura usada para carregar fs_objects.dat
 	char nArquivo[TAMANHO_NOME_ARQUIVO];// Nome do arquivo onde estão armazenados os dados da tabela.
 	int qtdCampos;						// Quantidade de campos da tabela.
 	char primary_key[TAMANHO_NOME_CAMPO]; //Chave Primária
+	char foreign_key_tabela[TAMANHO_NOME_TABELA]; //Tabela da Chave Estrangeira, única
+	char foreign_key_campo[TAMANHO_NOME_CAMPO]; //Campo da Chave Estrangeira, única
 };
 
 typedef struct tp_table{ // Estrutura usada para carregar fs_schema.dat
@@ -35,6 +37,8 @@ typedef struct table{ // Estrutura utilizada para criar uma tabela.
 	char nome[TAMANHO_NOME_TABELA]; // Nome da tabela.
 	tp_table *esquema;				// Esquema de campos da tabela.
 	char primary_key[TAMANHO_NOME_CAMPO]; //Chave Primaria
+	char foreign_key_tabela[TAMANHO_NOME_TABELA]; //Tabela da Chave Estrangeira, única
+	char foreign_key_campo[TAMANHO_NOME_CAMPO]; //Campo da Chave Estrangeira, única
 }table;
 
 typedef struct tp_buffer{ // Estrutura utilizada para armazenar o buffer.
@@ -137,6 +141,11 @@ table *iniciaTabela(char *nomeTabela);
 table *adicionaChavePrimaria(table *t, char *nomeCampo);
 /*
 	Função que adiciona a chave primária a Struct
+*/
+
+table *adicionaChaveEstrangeira(table *t, char *nomeCampo, char *nomeTabela);
+/*
+	Função que adiciona a tabela que fará ligação a Struct
 */
 
 table *adicionaCampo(table *t,char *nomeCampo, char tipoCampo, int tamanhoCampo);

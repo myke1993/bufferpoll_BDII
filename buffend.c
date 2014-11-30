@@ -34,10 +34,14 @@ struct fs_objects leObjeto(char *nTabela){
       		fread(&cod,sizeof(int),1,dicionario);
       		objeto.qtdCampos = cod;
       		fread(tupla,sizeof(char),TAMANHO_NOME_CAMPO,dicionario);
-      		strcpy(objeto.primary_key, tupla); 		
+      		strcpy(objeto.primary_key, tupla);
+      		fread(tupla,sizeof(char),TAMANHO_NOME_TABELA,dicionario);
+      		strcpy(objeto.foreign_key_tabela, tupla);
+      		fread(tupla,sizeof(char),TAMANHO_NOME_CAMPO,dicionario);
+      		strcpy(objeto.foreign_key_campo, tupla); 	
         	return objeto;
         }
-        fseek(dicionario, 68, 1); // Pula a quantidade de caracteres para a proxima verificacao(4B do codigo, 20B do nome do arquivo e 4B da quantidade de campos,40B do nome da chave).
+        fseek(dicionario, 128, 1); // Pula a quantidade de caracteres para a proxima verificacao(4B do codigo, 20B do nome do arquivo e 4B da quantidade de campos,40B do nome da chave).
 	}
 	return objeto;
 }
@@ -286,7 +290,7 @@ int verificaNomeTabela(char *nomeTabela)
         	return 1;
         }
         
-        fseek(dicionario, 68, 1);
+        fseek(dicionario, 128, 1);
  	}
 
  	fclose(dicionario);
@@ -382,10 +386,25 @@ table *iniciaTabela(char *nome)
 	strcpy(t->nome,nome); // Inicia a estrutura de tabela com o nome da tabela.
 	t->esquema = NULL; // Inicia o esquema da tabela com NULL.
 	strcmp(t->primary_key,""); //Inicia a Chave Primária Vazia.
+	strcmp(t->foreign_key_tabela,""); //Inicia Vazia.
+	strcmp(t->foreign_key_campo,""); //Inicia Vazia.
 	return t; // Retorna estrutura para criação de uma tabela.
 }
 table *adicionaChavePrimaria(table *t, char *nomeChave){
 	strcpy(t->primary_key, nomeChave); //copia o Nome da Chave Primária para a Struct
+	return t;
+}
+
+table *adicionaChaveEstrangeira(table *t, char *nomeCampo, char *nomeTabela){
+	char verifica[TAMANHO_NOME_TABELA+5];
+	strcpy(verifica,nomeTabela);
+	strcat(verifica, ".dat\0");
+	FILE *testa  = fopen(verifica,"r");
+	if(testa == NULL) printf("Não existe essa tabela, impossível criar chave estrangeira\n");
+	else {
+		strcpy(t->foreign_key_tabela, nomeTabela); //copia o Nome da Tabela para a Struct
+		strcpy(t->foreign_key_campo, nomeCampo); //copia o Nome do Campo para a Struct
+	}
 	return t;
 }
 
@@ -431,7 +450,7 @@ int finalizaTabela(table *t)
 	FILE *esquema, *dicionario;
 	tp_table *aux;
 	int codTbl = quantidadeTabelas() + 1, qtdCampos = 0; // Conta a quantidade de tabelas já no dicionario e soma 1 no codigo dessa nova tabela.
-	char nomeArquivo[TAMANHO_NOME_ARQUIVO], primary_key[TAMANHO_NOME_CAMPO];
+	char nomeArquivo[TAMANHO_NOME_ARQUIVO], primary_key[TAMANHO_NOME_CAMPO], foreign_key_tabela[TAMANHO_NOME_TABELA], foreign_key_campo[TAMANHO_NOME_CAMPO];
 
 	if((esquema = fopen("fs_schema.dat","a+b")) == NULL)
         return ERRO_ABRIR_ARQUIVO;
@@ -452,7 +471,9 @@ int finalizaTabela(table *t)
     	return ERRO_ABRIR_ARQUIVO;
     	
 	strcpy(primary_key,t->primary_key);
-	if(strcmp(primary_key,"")==0) printf("Não foi inserido Chave Primária\n\n");//Mensagem que mostra que a tabela foi criada sem chave primaria
+	if(strcmp(primary_key,"")==0) printf("Tabela criada sem Chave Primária\n");//Mensagem que mostra que a tabela foi criada sem chave primaria
+	strcpy(foreign_key_tabela,t->foreign_key_tabela);
+	strcpy(foreign_key_campo,t->foreign_key_campo);
 	
 	strcpy(nomeArquivo, t->nome);
 	strcat(nomeArquivo, ".dat\0");
@@ -463,6 +484,8 @@ int finalizaTabela(table *t)
 	fwrite(&nomeArquivo,sizeof(nomeArquivo),1,dicionario);
 	fwrite(&qtdCampos,sizeof(qtdCampos),1,dicionario);
 	fwrite(&primary_key,sizeof(primary_key),1,dicionario);
+	fwrite(&foreign_key_tabela,sizeof(foreign_key_tabela),1,dicionario);
+	fwrite(&foreign_key_campo,sizeof(foreign_key_campo),1,dicionario);
 	
 	fclose(dicionario);
 	return SUCCESS;
@@ -520,6 +543,11 @@ int comp_function_double(void* a,void* b){
 void free_function(void *a){
 	free(a);
 }
+arvbi* constroi_arv_estrangeira(arvbi *B,char *nomeTabela){
+	// Função que deverá carregar na árvore Binaria todos os elementos da Chave Primaria da Tabela passada de parâmetro
+	return B;
+}
+
 int finalizaInsert(char *nome, column *c)
 {
 	column *auxC;
@@ -528,6 +556,11 @@ int finalizaInsert(char *nome, column *c)
 	arvbi *A=NULL;
 	A = (arvbi*) malloc(sizeof(arvbi));
 	create_arvbi(A);
+	
+	arvbi *B=NULL;
+	B = (arvbi*) malloc(sizeof(arvbi));
+	create_arvbi(B);
+	
 	int *indice = malloc (sizeof(int)*2);
 	double *ind = malloc (sizeof(double)*2);
 
@@ -537,6 +570,9 @@ int finalizaInsert(char *nome, column *c)
 	if((dados = fopen(dicio.nArquivo,"a+b")) == NULL)
     	return ERRO_ABRIR_ARQUIVO;
 	
+	if(strcmp(dicio.foreign_key_tabela,"")!=0){
+		B = constroi_arv_estrangeira(B,dicio.foreign_key_tabela);
+	}
 	for(auxC = c, t = 0; auxC != NULL; auxC = auxC->next, t++)
 	{
 		if(t >= dicio.qtdCampos)
@@ -555,6 +591,7 @@ int finalizaInsert(char *nome, column *c)
 				if(get_key(A,valorCampo,&comp_function_string)==NULL){
 					char *indice = malloc (sizeof(char)*auxT[t].tam); 
 					strcpy(indice,valorCampo);
+					strcat(indice, "\0");
 					insert_arvbi(A,indice,&comp_function_string);	//se não tem adiciona na árvore
 				}
 				else{
@@ -640,6 +677,7 @@ int finalizaInsert(char *nome, column *c)
 	free(ind);
 	return SUCCESS;
 }
+
 //----------------------------------------
 // EXCLUIR TUPLA BUFFER
 column * excluirTuplaBuffer(tp_buffer *buffer, tp_table *campos, struct fs_objects objeto, int page, int nTupla){

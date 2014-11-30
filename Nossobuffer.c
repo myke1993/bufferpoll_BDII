@@ -7,19 +7,20 @@ int main(/*int rg ,char *nomeTabela[]*/){
 	table *t = NULL;
 	column *c = NULL;
 
-	t = iniciaTabela("Pessoa");
+	t = iniciaTabela("Pesso");
 
 	if(t == ERRO_NOME_TABELA_INVALIDO){
 		printf("Erro: na função iniciaTabela(). Nome da tabela já existente.\n");
 		return 0;
 	}
 
-	t = adicionaCampo(t, "Idade", 'I', (sizeof(int)));
 	t = adicionaCampo(t, "Nome", 'S', 20);
+	t = adicionaCampo(t, "Idade", 'I', (sizeof(int)));
 	t = adicionaCampo(t, "Sexo", 'C', (sizeof(char)));
 	t = adicionaCampo(t, "Media", 'D', (sizeof(double)));
 	t = adicionaCampo(t, "Obs", 'S', 40);
-	t = adicionaChavePrimaria(t,"Idade");
+	t = adicionaChavePrimaria(t,"Nome");
+	t = adicionaChaveEstrangeira(t,"Nome","Pessoa");
 
 	erro = finalizaTabela(t);
 
@@ -28,21 +29,66 @@ int main(/*int rg ,char *nomeTabela[]*/){
 		return 0;
 	}
 	
-	c = insereValor(c, "Idade", "40");
 	c = insereValor(c, "Nome", "Um"); 
+	c = insereValor(c, "Idade", "40");
 	c = insereValor(c, "Sexo", "F");
 	c = insereValor(c, "Media", "2.5");
 	c = insereValor(c, "Obs", "Obs. Um");
 	
 
-	c = insereValor(c, "Idade", "30");
 	c = insereValor(c, "Nome", "Dois");
+	c = insereValor(c, "Idade", "40");
 	c = insereValor(c, "Sexo", "M");
 	c = insereValor(c, "Media", "1.67");
 	c = insereValor(c, "Obs", "Obs. Dois");
 
-	c = insereValor(c, "Idade", "20");
+
 	c = insereValor(c, "Nome", "Dois");
+	c = insereValor(c, "Idade", "40");
+	c = insereValor(c, "Sexo", "F");
+	c = insereValor(c, "Media", "1.456");
+	c = insereValor(c, "Obs", "Obs. Três");
+
+	erro = finalizaInsert("Pesso", c);
+	
+	t = iniciaTabela("Pessoa");
+
+	if(t == ERRO_NOME_TABELA_INVALIDO){
+		printf("Erro: na função iniciaTabela(). Nome da tabela já existente.\n");
+		return 0;
+	}
+
+	t = adicionaCampo(t, "Nome", 'S', 20);
+	t = adicionaCampo(t, "Idade", 'I', (sizeof(int)));
+	t = adicionaCampo(t, "Sexo", 'C', (sizeof(char)));
+	t = adicionaCampo(t, "Media", 'D', (sizeof(double)));
+	t = adicionaCampo(t, "Obs", 'S', 40);
+	t = adicionaChavePrimaria(t,"Nome");
+	t = adicionaChaveEstrangeira(t,"Nome","Pesso");
+
+	erro = finalizaTabela(t);
+
+	if(erro != SUCCESS){
+		printf("Erro %d: na função finalizaTabela().\n", erro);
+		return 0;
+	}
+	
+	c = insereValor(c, "Nome", "Um"); 
+	c = insereValor(c, "Idade", "40");
+	c = insereValor(c, "Sexo", "F");
+	c = insereValor(c, "Media", "2.5");
+	c = insereValor(c, "Obs", "Obs. Um");
+	
+
+	c = insereValor(c, "Nome", "Dois");
+	c = insereValor(c, "Idade", "40");
+	c = insereValor(c, "Sexo", "M");
+	c = insereValor(c, "Media", "1.67");
+	c = insereValor(c, "Obs", "Obs. Dois");
+
+
+	c = insereValor(c, "Nome", "Dois");
+	c = insereValor(c, "Idade", "40");
 	c = insereValor(c, "Sexo", "F");
 	c = insereValor(c, "Media", "1.456");
 	c = insereValor(c, "Obs", "Obs. Três");
