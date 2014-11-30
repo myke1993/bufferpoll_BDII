@@ -1,6 +1,6 @@
 #include "buffend.h"
 
-int main(int rg, char *nomeTabela[]){
+int main(/*int rg ,char *nomeTabela[]*/){
 	
 	int erro;
 
@@ -14,11 +14,12 @@ int main(int rg, char *nomeTabela[]){
 		return 0;
 	}
 
-	t = adicionaCampo(t, "Nome", 'S', 20);
 	t = adicionaCampo(t, "Idade", 'I', (sizeof(int)));
+	t = adicionaCampo(t, "Nome", 'S', 20);
 	t = adicionaCampo(t, "Sexo", 'C', (sizeof(char)));
-	t = adicionaCampo(t, "Obs", 'S', 40);
 	t = adicionaCampo(t, "Media", 'D', (sizeof(double)));
+	t = adicionaCampo(t, "Obs", 'S', 40);
+	t = adicionaChavePrimaria(t,"Idade");
 
 	erro = finalizaTabela(t);
 
@@ -27,27 +28,27 @@ int main(int rg, char *nomeTabela[]){
 		return 0;
 	}
 	
-	c = insereValor(c, "Nome", "Um");
 	c = insereValor(c, "Idade", "40");
+	c = insereValor(c, "Nome", "Um"); 
 	c = insereValor(c, "Sexo", "F");
-	c = insereValor(c, "Obs", "Obs. Um");
 	c = insereValor(c, "Media", "2.5");
+	c = insereValor(c, "Obs", "Obs. Um");
 	
 
-	c = insereValor(c, "Nome", "Dois");
-	c = insereValor(c, "Idade", "20");
-	c = insereValor(c, "Sexo", "M");
-	c = insereValor(c, "Obs", "Obs. Dois");
-	c = insereValor(c, "Media", "1.67");
-
-	c = insereValor(c, "Nome", "Três");
 	c = insereValor(c, "Idade", "30");
+	c = insereValor(c, "Nome", "Dois");
+	c = insereValor(c, "Sexo", "M");
+	c = insereValor(c, "Media", "1.67");
+	c = insereValor(c, "Obs", "Obs. Dois");
+
+	c = insereValor(c, "Idade", "20");
+	c = insereValor(c, "Nome", "Dois");
 	c = insereValor(c, "Sexo", "F");
-	c = insereValor(c, "Obs", "Obs. Três");
 	c = insereValor(c, "Media", "1.456");
+	c = insereValor(c, "Obs", "Obs. Três");
 
 	erro = finalizaInsert("Pessoa", c);
-
+/*
 	if(erro != SUCCESS){
 		printf("Erro %d: na função finalizaInsert()\n", erro);
 		return 0;
@@ -163,6 +164,6 @@ int main(int rg, char *nomeTabela[]){
 		printf("Erro %d: na função printbufferpoll().\n", erro);
 		return 0;
 	}
-
+*/
 	return 0;
 }

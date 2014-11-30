@@ -1,19 +1,19 @@
 #include "buffend.h"
+#include "arvbi.h"
 // LEITURA DE DICIONARIO E ESQUEMA
 struct fs_objects leObjeto(char *nTabela){
 
 	FILE *dicionario;
-	char *tupla = (char *)malloc(sizeof(char)*TAMANHO_NOME_TABELA);
+	char *tupla = (char *)malloc(sizeof(char)*TAMANHO_NOME_CAMPO);
 	int cod;
 	dicionario = fopen("fs_object.dat", "a+b"); // Abre o dicionario de dados.
-
+	
 	struct fs_objects objeto;
 
 	if(!verificaNomeTabela(nTabela)){
 		printf("Erro GRAVE! na função leObjeto(). Nome da tabela inválido.\nAbortando...\n");
 		exit(1);
 	}
-
 	if (dicionario == NULL)	{
 		printf("Erro GRAVE! na função leObjeto(). Arquivo não encontrado.\nAbortando...\n\n");
 		exit(1);
@@ -22,7 +22,7 @@ struct fs_objects leObjeto(char *nTabela){
 
 	while(fgetc (dicionario) != EOF){
         fseek(dicionario, -1, 1);
-
+        
         fread(tupla, sizeof(char), TAMANHO_NOME_TABELA , dicionario); //Lê somente o nome da tabela
 
         if(strcmp(tupla, nTabela) == 0){ // Verifica se o nome dado pelo usuario existe no dicionario de dados.
@@ -33,10 +33,11 @@ struct fs_objects leObjeto(char *nTabela){
       		strcpy(objeto.nArquivo, tupla);
       		fread(&cod,sizeof(int),1,dicionario);
       		objeto.qtdCampos = cod;
-      		
+      		fread(tupla,sizeof(char),TAMANHO_NOME_CAMPO,dicionario);
+      		strcpy(objeto.primary_key, tupla); 		
         	return objeto;
         }
-        fseek(dicionario, 28, 1); // Pula a quantidade de caracteres para a proxima verificacao(4B do codigo, 20B do nome do arquivo e 4B da quantidade de campos).
+        fseek(dicionario, 68, 1); // Pula a quantidade de caracteres para a proxima verificacao(4B do codigo, 20B do nome do arquivo e 4B da quantidade de campos,40B do nome da chave).
 	}
 	return objeto;
 }
@@ -285,7 +286,7 @@ int verificaNomeTabela(char *nomeTabela)
         	return 1;
         }
         
-        fseek(dicionario, 28, 1);
+        fseek(dicionario, 68, 1);
  	}
 
  	fclose(dicionario);
@@ -380,8 +381,14 @@ table *iniciaTabela(char *nome)
 	table *t = (table *)malloc(sizeof(table)*1);
 	strcpy(t->nome,nome); // Inicia a estrutura de tabela com o nome da tabela.
 	t->esquema = NULL; // Inicia o esquema da tabela com NULL.
+	strcmp(t->primary_key,""); //Inicia a Chave Primária Vazia.
 	return t; // Retorna estrutura para criação de uma tabela.
 }
+table *adicionaChavePrimaria(table *t, char *nomeChave){
+	strcpy(t->primary_key, nomeChave); //copia o Nome da Chave Primária para a Struct
+	return t;
+}
+
 table *adicionaCampo(table *t,char *nomeCampo, char tipoCampo, int tamanhoCampo)
 {
 	if(t == NULL) // Se a estrutura passada for nula, retorna erro.
@@ -424,7 +431,7 @@ int finalizaTabela(table *t)
 	FILE *esquema, *dicionario;
 	tp_table *aux;
 	int codTbl = quantidadeTabelas() + 1, qtdCampos = 0; // Conta a quantidade de tabelas já no dicionario e soma 1 no codigo dessa nova tabela.
-	char nomeArquivo[TAMANHO_NOME_ARQUIVO];
+	char nomeArquivo[TAMANHO_NOME_ARQUIVO], primary_key[TAMANHO_NOME_CAMPO];
 
 	if((esquema = fopen("fs_schema.dat","a+b")) == NULL)
         return ERRO_ABRIR_ARQUIVO;
@@ -443,7 +450,10 @@ int finalizaTabela(table *t)
 
 	if((dicionario = fopen("fs_object.dat","a+b")) == NULL)
     	return ERRO_ABRIR_ARQUIVO;
-
+    	
+	strcpy(primary_key,t->primary_key);
+	if(strcmp(primary_key,"")==0) printf("Não foi inserido Chave Primária\n\n");//Mensagem que mostra que a tabela foi criada sem chave primaria
+	
 	strcpy(nomeArquivo, t->nome);
 	strcat(nomeArquivo, ".dat\0");
 	strcat(t->nome, "\0");
@@ -452,7 +462,8 @@ int finalizaTabela(table *t)
 	fwrite(&codTbl,sizeof(codTbl),1,dicionario);
 	fwrite(&nomeArquivo,sizeof(nomeArquivo),1,dicionario);
 	fwrite(&qtdCampos,sizeof(qtdCampos),1,dicionario);
-
+	fwrite(&primary_key,sizeof(primary_key),1,dicionario);
+	
 	fclose(dicionario);
 	return SUCCESS;
 }
@@ -460,7 +471,6 @@ int finalizaTabela(table *t)
 // INSERE NA TABELA
 column *insereValor(column *c, char *nomeCampo, char *valorCampo)
 {
-	
 	column *aux;
 	if(c == NULL) // Se o valor a ser inserido é o primeiro, adiciona primeiro campo.
 	{
@@ -491,12 +501,35 @@ column *insereValor(column *c, char *nomeCampo, char *valorCampo)
 
 	return ERRO_INSERIR_VALOR;
 }
+int comp_function_string(void* a,void* b){
+	return strcmp(a,b);
+}
+
+int comp_function_int(void* a,void* b){
+	int x = *(int*)a;
+	int y = *(int*)b;
+	return  x-y; 
+}
+
+int comp_function_double(void* a,void* b){
+	double x = *(double*)a;
+	double y = *(double*)b;
+	return  x-y; 
+}
+
+void free_function(void *a){
+	free(a);
+}
 int finalizaInsert(char *nome, column *c)
 {
 	column *auxC;
-	int i = 0, x = 0, t;
+	int i = 0, x = 0, t, flag = 1;
 	FILE *dados;
-
+	arvbi *A=NULL;
+	A = (arvbi*) malloc(sizeof(arvbi));
+	create_arvbi(A);
+	int *indice = malloc (sizeof(int)*2);
+	double *ind = malloc (sizeof(double)*2);
 
 	struct fs_objects dicio = leObjeto(nome); // Le dicionario
 	tp_table *auxT = leSchema(dicio); // Le esquema
@@ -508,7 +541,6 @@ int finalizaInsert(char *nome, column *c)
 	{
 		if(t >= dicio.qtdCampos)
 			t = 0;
-
 		if(auxT[t].tipo == 'S'){ // Grava um dado do tipo string.
 			if(sizeof(auxC->valorCampo) > auxT[t].tam){
 				return ERRO_NO_TAMANHO_STRING;
@@ -519,7 +551,23 @@ int finalizaInsert(char *nome, column *c)
 			char valorCampo[auxT[t].tam];
 			strcpy(valorCampo, auxC->valorCampo);
 			strcat(valorCampo, "\0");
-			fwrite(&valorCampo,sizeof(valorCampo),1,dados);
+			if(strcmp(auxC->nomeCampo,dicio.primary_key)==0){ //verifica se é a chave
+				if(get_key(A,valorCampo,&comp_function_string)==NULL){
+					char *indice = malloc (sizeof(char)*auxT[t].tam); 
+					strcpy(indice,valorCampo);
+					insert_arvbi(A,indice,&comp_function_string);	//se não tem adiciona na árvore
+				}
+				else{
+					printf("\n%s, Chave primária duplicada, a duplicação não foi inserida\n",valorCampo); //se tem, não insere
+					for(;auxC!= NULL&&t<dicio.qtdCampos-1;auxC = auxC->next,t++); 
+					flag=0;
+				}
+			}
+			if(flag==1) 
+				fwrite(&valorCampo,sizeof(valorCampo),1,dados); 
+			
+			else 
+				flag = 1;
 		}
 		else if(auxT[t].tipo == 'I'){ // Grava um dado do tipo inteiro.
 			i = 0;
@@ -532,7 +580,20 @@ int finalizaInsert(char *nome, column *c)
 			}
 
 			int valorInteiro = convertI(auxC->valorCampo);
-			fwrite(&valorInteiro,sizeof(valorInteiro),1,dados);
+			if(strcmp(auxC->nomeCampo,dicio.primary_key)==0){ //verifica se é a chave
+				if(get_key(A,&valorInteiro,&comp_function_int)==NULL){
+					indice[get_size_arvbi(A)] = valorInteiro;
+					insert_arvbi(A,&indice[get_size_arvbi(A)],&comp_function_int);	//se não tem adiciona na árvore
+					indice = realloc (indice,sizeof(int)*(get_size_arvbi(A)+2));
+				}
+				else{
+					printf("\n%d, Chave primária duplicada, a duplicação não foi inserida\n",valorInteiro); //se tem, não insere
+					for(;auxC!= NULL&&t<dicio.qtdCampos-1;auxC = auxC->next,t++);
+					flag=0;
+				}
+			}
+			if(flag == 1) fwrite(&valorInteiro,sizeof(valorInteiro),1,dados);
+			else flag=1;
 		}
 		else if(auxT[t].tipo == 'D'){ // Grava um dado do tipo double.
 			x = 0;
@@ -545,7 +606,20 @@ int finalizaInsert(char *nome, column *c)
 			}
 
 			double valorDouble = convertD(auxC->valorCampo);
-			fwrite(&valorDouble,sizeof(valorDouble),1,dados);
+			if(strcmp(auxC->nomeCampo,dicio.primary_key)==0){ //verifica se é a chave
+				if(get_key(A,&valorDouble,&comp_function_int)==NULL){
+					ind[get_size_arvbi(A)] = valorDouble;
+					insert_arvbi(A,&ind[get_size_arvbi(A)],&comp_function_double);	//se não tem adiciona na árvore
+					ind = realloc (ind,sizeof(double)*(get_size_arvbi(A)+2));
+				}
+				else{
+					printf("\n%lf, Chave primária duplicada, a duplicação não foi inserida\n",valorDouble); //se tem, não insere
+					for(;auxC!= NULL&&t<dicio.qtdCampos-1;auxC = auxC->next,t++);
+					flag=0;
+				}
+			}
+			if(flag==1) fwrite(&valorDouble,sizeof(valorDouble),1,dados);
+			else flag=1;
 		}
 		else if(auxT[t].tipo == 'C'){ // Grava um dado do tipo char.
 
@@ -561,6 +635,9 @@ int finalizaInsert(char *nome, column *c)
 	fclose(dados);
 	free(c); // Libera a memoria da estrutura.
 	free(auxT); // Libera a memoria da estrutura.
+	free_arvbi(A,&free_function);
+	free(indice);
+	free(ind);
 	return SUCCESS;
 }
 //----------------------------------------

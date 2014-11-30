@@ -3,7 +3,7 @@
 #include <string.h>
 #include "erros.h"
 
-#define SIZE 512 				// Tamanho da página.
+#define SIZE 512 			 	// Tamanho da página.
 #define PAGES 1024 				// Número de páginas.
 #define TAMANHO_NOME_CAMPO 40 	// Tamanho do nome dos campos de uma tabela.
 #define TAMANHO_NOME_TABELA 20 	// Tamanho do nome da tabela.
@@ -14,6 +14,7 @@ struct fs_objects { // Estrutura usada para carregar fs_objects.dat
 	int cod;							// Código da tabela.
 	char nArquivo[TAMANHO_NOME_ARQUIVO];// Nome do arquivo onde estão armazenados os dados da tabela.
 	int qtdCampos;						// Quantidade de campos da tabela.
+	char primary_key[TAMANHO_NOME_CAMPO]; //Chave Primária
 };
 
 typedef struct tp_table{ // Estrutura usada para carregar fs_schema.dat
@@ -33,6 +34,7 @@ typedef struct column{ // Estrutura utilizada para inserir em uma tabela, exclui
 typedef struct table{ // Estrutura utilizada para criar uma tabela.
 	char nome[TAMANHO_NOME_TABELA]; // Nome da tabela.
 	tp_table *esquema;				// Esquema de campos da tabela.
+	char primary_key[TAMANHO_NOME_CAMPO]; //Chave Primaria
 }table;
 
 typedef struct tp_buffer{ // Estrutura utilizada para armazenar o buffer.
@@ -131,6 +133,12 @@ table *iniciaTabela(char *nomeTabela);
 	tipoCampo - Tipo do campo que irá ser inserido na lista de campos.
 	tamanhoCampo - Tamanho do campo que irá ser inserido na lista de campos.
 */
+
+table *adicionaChavePrimaria(table *t, char *nomeCampo);
+/*
+	Função que adiciona a chave primária a Struct
+*/
+
 table *adicionaCampo(table *t,char *nomeCampo, char tipoCampo, int tamanhoCampo);
 /*
 	Esta função finaliza a tabela preveamente estrutura pelas funcoes iniciaTabela() e adicionaCampo(). 
