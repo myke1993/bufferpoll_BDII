@@ -182,6 +182,7 @@ column *insereValor(column *c, char *nomeCampo, char *valorCampo);
 	*nome - Nome da tabela que vai ser inserido os valores da estrutura *c.
 	*c - Estrutura com o valores que vão ser inseridos na tabela *nome.
 */
+
 int finalizaInsert(char *nome, column *c);
 /*
 	Esta função recupera uma página do buffer e retorna a mesma em uma estrutura do tipo column
@@ -191,6 +192,17 @@ int finalizaInsert(char *nome, column *c);
 	*objeto - Estrutura que armazena dados sobre a tabela que está no buffer
 	*page - Número da página a ser recuperada (0 a PAGES)
 */
+
+int leTabela(char *nome);
+/*
+	Função que lê uma tabela usando o nome passado como parametro.
+*/
+
+int dropTable (char *nome);
+/*
+	função que procura uma tabela com o nome passado de parametro e exclui
+*/
+
 column * getPage(tp_buffer *buffer, tp_table *campos, struct fs_objects objeto, int page);
 /*
 	Esta função uma determinada tupla do buffer e retorna a mesma em uma estrutura do tipo column; 

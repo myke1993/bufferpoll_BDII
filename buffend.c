@@ -543,10 +543,13 @@ int comp_function_double(void* a,void* b){
 void free_function(void *a){
 	free(a);
 }
+
 arvbi* constroi_arv_estrangeira(arvbi *B,char *nomeTabela){
 	// Função que deverá carregar na árvore Binaria todos os elementos da Chave Primaria da Tabela passada de parâmetro
 	return B;
 }
+
+
 
 int finalizaInsert(char *nome, column *c)
 {
@@ -677,6 +680,27 @@ int finalizaInsert(char *nome, column *c)
 	free(ind);
 	return SUCCESS;
 }
+
+int leTabela(char *nome){
+	int ret;                                  //retorno
+	FILE *dados;                              //arquivo com os dados da tabela 
+	struct fs_objects dicio = leObjeto(nome); // Le dicionario
+	tp_table *auxT = leSchema(dicio);         // Le esquema
+	
+	if((dados = fopen(dicio.nArquivo,"a+b")) == NULL)  //Abre o arquivo com os dados
+    	ret = ERRO_ABRIR_ARQUIVO;
+	column *tuplas;
+	                                               // O que fazer: Ler o dicionário pra ver o tamanho, nome do campo e tipo, 
+	                                               // carregar em column e ler os dados do arquivo de dados
+	return ret;
+}
+
+int dropTable (char *nome){
+	int ret;
+	//função que deverá excluir uma tabela do dicionário e também do disco.
+	return ret;
+}
+
 
 //----------------------------------------
 // EXCLUIR TUPLA BUFFER
